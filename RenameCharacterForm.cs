@@ -45,8 +45,7 @@ namespace DialogueCreator {
                 ComboBox optionsBox = new ComboBox {
                     DropDownStyle = ComboBoxStyle.DropDownList,
                     Font = comboFont,
-                    Anchor = AnchorStyles.None,
-                    Dock = DockStyle.Fill,
+                    Anchor = AnchorStyles.Left | AnchorStyles.Right,
                     DisplayMember = "Text",
                     ValueMember = "Value",
                     DataSource = comboItems
@@ -54,7 +53,7 @@ namespace DialogueCreator {
                 OptionBoxes[remove] = optionsBox;
 
                 RenameTable.RowCount++;
-                RenameTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+                RenameTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
                 RenameTable.Controls.Add(charLabel, oldCharColumn, RenameTable.RowCount - 1);
                 RenameTable.Controls.Add(optionsBox, actionColumn, RenameTable.RowCount - 1);
             }

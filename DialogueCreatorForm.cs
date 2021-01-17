@@ -187,7 +187,7 @@ namespace DialogueCreator {
             // possible renaming characters
             if (removedChars.Count > 0 && addedChars.Count > 0) {
                 // for every renamed character, we must remove it from both lists
-                var renameForm = new RenameCharacterForm(removedChars, newChars);
+                var renameForm = new RenameCharacterForm(removedChars, addedChars);
                 renameForm.ShowDialog(this);
                 if (renameForm.Canceled) return;
                 DialogueTable.Enabled = false;
