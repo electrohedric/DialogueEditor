@@ -24,15 +24,15 @@
         /// </summary>
         private void InitializeComponent() {
             this.panel1 = new System.Windows.Forms.Panel();
-            this.RenameTable = new System.Windows.Forms.TableLayoutPanel();
+            this.renameTable = new System.Windows.Forms.TableLayoutPanel();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-            this.OkButton = new System.Windows.Forms.Button();
-            this.CancelButton = new System.Windows.Forms.Button();
+            this.okButton = new System.Windows.Forms.Button();
+            this.cancelButton = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
-            this.RenameTable.SuspendLayout();
+            this.renameTable.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
@@ -40,7 +40,7 @@
             // panel1
             // 
             this.panel1.AutoScroll = true;
-            this.panel1.Controls.Add(this.RenameTable);
+            this.panel1.Controls.Add(this.renameTable);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel1.Location = new System.Drawing.Point(3, 3);
             this.panel1.Name = "panel1";
@@ -49,21 +49,21 @@
             // 
             // RenameTable
             // 
-            this.RenameTable.AutoSize = true;
-            this.RenameTable.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.RenameTable.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.Outset;
-            this.RenameTable.ColumnCount = 2;
-            this.RenameTable.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 41.86047F));
-            this.RenameTable.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 58.13953F));
-            this.RenameTable.Controls.Add(this.label1, 0, 0);
-            this.RenameTable.Controls.Add(this.label2, 1, 0);
-            this.RenameTable.Dock = System.Windows.Forms.DockStyle.Top;
-            this.RenameTable.Location = new System.Drawing.Point(0, 0);
-            this.RenameTable.Name = "RenameTable";
-            this.RenameTable.RowCount = 1;
-            this.RenameTable.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.RenameTable.Size = new System.Drawing.Size(328, 24);
-            this.RenameTable.TabIndex = 0;
+            this.renameTable.AutoSize = true;
+            this.renameTable.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.renameTable.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.Outset;
+            this.renameTable.ColumnCount = 2;
+            this.renameTable.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 41.86047F));
+            this.renameTable.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 58.13953F));
+            this.renameTable.Controls.Add(this.label1, 0, 0);
+            this.renameTable.Controls.Add(this.label2, 1, 0);
+            this.renameTable.Dock = System.Windows.Forms.DockStyle.Top;
+            this.renameTable.Location = new System.Drawing.Point(0, 0);
+            this.renameTable.Name = "RenameTable";
+            this.renameTable.RowCount = 1;
+            this.renameTable.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.renameTable.Size = new System.Drawing.Size(328, 24);
+            this.renameTable.TabIndex = 0;
             // 
             // label1
             // 
@@ -105,8 +105,8 @@
             this.flowLayoutPanel1.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.flowLayoutPanel1.AutoSize = true;
             this.flowLayoutPanel1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.flowLayoutPanel1.Controls.Add(this.OkButton);
-            this.flowLayoutPanel1.Controls.Add(this.CancelButton);
+            this.flowLayoutPanel1.Controls.Add(this.okButton);
+            this.flowLayoutPanel1.Controls.Add(this.cancelButton);
             this.flowLayoutPanel1.Location = new System.Drawing.Point(86, 350);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
             this.flowLayoutPanel1.Size = new System.Drawing.Size(162, 29);
@@ -114,23 +114,23 @@
             // 
             // OkButton
             // 
-            this.OkButton.Location = new System.Drawing.Point(3, 3);
-            this.OkButton.Name = "OkButton";
-            this.OkButton.Size = new System.Drawing.Size(75, 23);
-            this.OkButton.TabIndex = 0;
-            this.OkButton.Text = "OK";
-            this.OkButton.UseVisualStyleBackColor = true;
-            this.OkButton.Click += new System.EventHandler(this.OkButton_Click);
+            this.okButton.Location = new System.Drawing.Point(3, 3);
+            this.okButton.Name = "OkButton";
+            this.okButton.Size = new System.Drawing.Size(75, 23);
+            this.okButton.TabIndex = 0;
+            this.okButton.Text = "OK";
+            this.okButton.UseVisualStyleBackColor = true;
+            this.okButton.Click += new System.EventHandler(this.OkButton_Click);
             // 
             // CancelButton
             // 
-            this.CancelButton.Location = new System.Drawing.Point(84, 3);
-            this.CancelButton.Name = "CancelButton";
-            this.CancelButton.Size = new System.Drawing.Size(75, 23);
-            this.CancelButton.TabIndex = 1;
-            this.CancelButton.Text = "Cancel";
-            this.CancelButton.UseVisualStyleBackColor = true;
-            this.CancelButton.Click += new System.EventHandler(this.CancelButton_Click);
+            this.cancelButton.Location = new System.Drawing.Point(84, 3);
+            this.cancelButton.Name = "CancelButton";
+            this.cancelButton.Size = new System.Drawing.Size(75, 23);
+            this.cancelButton.TabIndex = 1;
+            this.cancelButton.Text = "Cancel";
+            this.cancelButton.UseVisualStyleBackColor = true;
+            this.cancelButton.Click += new System.EventHandler(this.CancelButton_Click);
             // 
             // RenameCharacterForm
             // 
@@ -142,7 +142,7 @@
             this.Text = "Rename Characters";
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
-            this.RenameTable.ResumeLayout(false);
+            this.renameTable.ResumeLayout(false);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
             this.flowLayoutPanel1.ResumeLayout(false);
@@ -153,12 +153,12 @@
         #endregion
 
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.TableLayoutPanel RenameTable;
+        private System.Windows.Forms.TableLayoutPanel renameTable;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
-        private System.Windows.Forms.Button OkButton;
-        private System.Windows.Forms.Button CancelButton;
+        private System.Windows.Forms.Button okButton;
+        private System.Windows.Forms.Button cancelButton;
     }
 }

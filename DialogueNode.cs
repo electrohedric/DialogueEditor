@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace DialogueCreator {
     public class DialogueNode {
@@ -17,6 +18,7 @@ namespace DialogueCreator {
 
         public class Dialogue {
             public Character Speaker { get; set; }
+
             public string Text { get; set; }
 
             public override string ToString() {
@@ -26,6 +28,7 @@ namespace DialogueCreator {
 
         public class Choice {
             public string Text { get; set; }
+            public DialogueNode NextNode { get; set; }
 
             public override string ToString() {
                 return Text;

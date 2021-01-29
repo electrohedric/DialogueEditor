@@ -30,7 +30,7 @@ namespace DialogueCreator {
                 comboItems.Add(new { Text = "Rename to " + rename, Value = rename });
             }
 
-            RenameTable.SuspendLayout();
+            renameTable.SuspendLayout();
 
             foreach (var remove in toRemove) {
                 // label with the old character name
@@ -52,13 +52,13 @@ namespace DialogueCreator {
                 };
                 OptionBoxes[remove] = optionsBox;
 
-                RenameTable.RowCount++;
-                RenameTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
-                RenameTable.Controls.Add(charLabel, oldCharColumn, RenameTable.RowCount - 1);
-                RenameTable.Controls.Add(optionsBox, actionColumn, RenameTable.RowCount - 1);
+                renameTable.RowCount++;
+                renameTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
+                renameTable.Controls.Add(charLabel, oldCharColumn, renameTable.RowCount - 1);
+                renameTable.Controls.Add(optionsBox, actionColumn, renameTable.RowCount - 1);
             }
 
-            RenameTable.ResumeLayout();
+            renameTable.ResumeLayout();
 
             Canceled = true; // default if X is clicked
         }

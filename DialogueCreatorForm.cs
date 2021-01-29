@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 namespace DialogueCreator {
     public partial class DialogueCreatorForm : Form {
@@ -21,6 +22,7 @@ namespace DialogueCreator {
 
         private DialogueNode CurrentNode { get; set; }
         private TreeNode CurrentTreeNode { get; set; }
+        private string SaveFile { get; set; }
 
         public DialogueCreatorForm() {
             InitializeComponent();
@@ -46,18 +48,24 @@ namespace DialogueCreator {
         }
 
         private void AddCharacter(string name) {
-            Character.AddCharacter(name);
-            CharacterColumn.Items.Add(name);
+            AddCharacter(new Character(name));
         }
 
-        private void AddTreeNode(string name, TreeNode root = null) {
+        private void AddCharacter(Character c) {
+            Character.Characters[c.Name] = c; // add to static list to keep references
+            CharacterColumn.Items.Add(c.Name);
+        }
+
+        private DialogueNode AddTreeNode(string name, TreeNode root = null) {
             TreeNode added;
             if (root is null) {
                 added = TreeView.Nodes.Add(name);
             } else {
                 added = root.Nodes.Add(name);
             }
-            added.Tag = new DialogueNode();
+            var newNode = new DialogueNode();
+            added.Tag = newNode;
+            return newNode;
         }
 
         private void LoadDialogueNode(TreeNode treeNode) {
@@ -149,16 +157,61 @@ namespace DialogueCreator {
             SaveChoice(e.RowIndex);
         }
 
-        private void SaveToolStripMenuItem_Click(object sender, EventArgs e) {
+        private void SaveToFile() {
+            var container = new JsonDialogueContainer((DialogueNode) TreeView.Nodes[0].Tag, Character.Characters.Values);
+            string jsonOut = JsonConvert.SerializeObject(container);
+            System.IO.File.WriteAllText(SaveFile, jsonOut);
+        }
 
+        private void CopyDialogueToTree(TreeNode treeRoot, DialogueNode root) {
+            treeRoot.Tag = root;
+            foreach (var choice in root.Choices) {
+                TreeNode added = treeRoot.Nodes.Add(choice.Text);
+                CopyDialogueToTree(added, choice.NextNode);
+            }
+        }
+
+        private void LoadFromFile(string filePath) {
+            // clear all contents
+            Character.Characters.Clear();
+            TreeView.Nodes.Clear();
+
+            // load json
+            string jsonIn = System.IO.File.ReadAllText(filePath);
+            var container = JsonConvert.DeserializeObject<JsonDialogueContainer>(jsonIn);
+            foreach (Character c in container.Characters) {
+                AddCharacter(c);
+            }
+            CopyDialogueToTree(TreeView.Nodes.Add("Start"), container.Root);
+        }
+
+        private void SaveToolStripMenuItem_Click(object sender, EventArgs e) {
+            if (string.IsNullOrEmpty(SaveFile)) SaveAsToolStripMenuItem_Click(sender, e);
+            else SaveToFile();
         }
 
         private void SaveAsToolStripMenuItem_Click(object sender, EventArgs e) {
-
+            var saveDialogue = new SaveFileDialog {
+                Filter = "Json (*.json)|*.json",
+                RestoreDirectory = true,
+                Title = "Save As"
+            };
+            if (saveDialogue.ShowDialog() == DialogResult.OK) {
+                SaveFile = saveDialogue.FileName;
+                SaveToFile();
+            }
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e) {
-
+            var openDialogue = new OpenFileDialog {
+                Filter = "Json (*.json)|*.json",
+                RestoreDirectory = true,
+                Title = "Open File"
+            };
+            if (openDialogue.ShowDialog() == DialogResult.OK) {
+                SaveFile = openDialogue.FileName;
+                LoadFromFile(SaveFile);
+            }
         }
 
         private void NewToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -254,8 +307,10 @@ namespace DialogueCreator {
 
         private void ChoiceTable_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
             if (CurrentNode is null || e.RowIndex == 0 || !ChoiceTable.Enabled) return;
-            CurrentNode.Choices.Add(new DialogueNode.Choice());
-            AddTreeNode("-", CurrentTreeNode);
+            DialogueNode.Choice newChoice = new DialogueNode.Choice();
+            CurrentNode.Choices.Add(newChoice);
+            DialogueNode addedNode = AddTreeNode("-", CurrentTreeNode);
+            newChoice.NextNode = addedNode;
             CurrentTreeNode.Expand();
             Console.WriteLine("Added choice " + (e.RowIndex - 1));
         }
