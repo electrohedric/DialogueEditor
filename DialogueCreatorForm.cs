@@ -40,11 +40,8 @@ namespace DialogueCreator {
             DialogueTable.Rows.Clear();
             ChoiceTable.Rows.Clear();
 
-            AddCharacter("Socrates");
-            AddCharacter("Player");
-
             AddTreeNode("Start");
-            
+            SetTitle(false);
         }
 
         private void AddCharacter(string name) {
@@ -54,6 +51,7 @@ namespace DialogueCreator {
         private void AddCharacter(Character c) {
             Character.Characters[c.Name] = c; // add to static list to keep references
             CharacterColumn.Items.Add(c.Name);
+            SetTitle(true);
         }
 
         private DialogueNode AddTreeNode(string name, TreeNode root = null) {
@@ -93,6 +91,12 @@ namespace DialogueCreator {
             CurrentNode = node;
         }
 
+        private void SetTitle(bool changedStatus) {
+            string fileName = string.IsNullOrWhiteSpace(SaveFile) ? "(New File)" : SaveFile;
+            string status = changedStatus ? "*" : "";
+            Text = $"Dialogue Creator - {fileName}{status}";
+        }
+
         private async void ComboBox_SelectionChangeCommitted(object sender, EventArgs e) {
             ComboBox comboBox = (ComboBox) sender;
             comboBox.SelectionChangeCommitted -= ComboBox_SelectionChangeCommitted; // undo the event binding
@@ -100,6 +104,7 @@ namespace DialogueCreator {
             Console.WriteLine(comboBox.SelectedItem);
             await Task.Delay(1); // ms
             DialogueTable.CurrentCell = DialogueTable[DialogueColumn.Index, DialogueTable.CurrentCell.RowIndex];
+            SetTitle(true);
         }
 
         private void Table_CellEnter(object sender, DataGridViewCellEventArgs e) {
@@ -124,7 +129,7 @@ namespace DialogueCreator {
             string chosenCharacter = (string) row.Cells[CharacterColumn.Index].Value;
             if (chosenCharacter != null) dialogue.Speaker = Character.Characters[chosenCharacter];
             dialogue.Text = (string) row.Cells[DialogueColumn.Index].Value;
-            Console.WriteLine("Saved dialogue " + rowIndex + " to " + CurrentNode);
+            SetTitle(true);
         }
 
         private void SaveChoice(int rowIndex) {
@@ -138,7 +143,7 @@ namespace DialogueCreator {
             var choice = CurrentNode.Choices[rowIndex];
             choice.Text = (string) row.Cells[DialogueChoiceColumn.Index].Value;
             CurrentTreeNode.Nodes[rowIndex].Text = choice.Text;
-            Console.WriteLine("Saved choice " + rowIndex + " to " + CurrentNode);
+            SetTitle(true);
         }
 
         private void DialogueTable_CellLeave(object sender, DataGridViewCellEventArgs e) {
@@ -161,6 +166,7 @@ namespace DialogueCreator {
             var container = new JsonDialogueContainer((DialogueNode) TreeView.Nodes[0].Tag, Character.Characters.Values);
             string jsonOut = JsonConvert.SerializeObject(container);
             System.IO.File.WriteAllText(SaveFile, jsonOut);
+            SetTitle(false);
         }
 
         private void CopyDialogueToTree(TreeNode treeRoot, DialogueNode root) {
@@ -183,23 +189,33 @@ namespace DialogueCreator {
                 AddCharacter(c);
             }
             CopyDialogueToTree(TreeView.Nodes.Add("Start"), container.Root);
+            SetTitle(false);
+        }
+
+        private bool Save(bool saveAs) {
+            if (saveAs || string.IsNullOrEmpty(SaveFile)) {
+                var saveDialogue = new SaveFileDialog {
+                    Filter = "Json (*.json)|*.json",
+                    RestoreDirectory = true,
+                    Title = "Save As"
+                };
+                if (saveDialogue.ShowDialog() == DialogResult.OK) {
+                    SaveFile = saveDialogue.FileName;
+                    SaveToFile();
+                    return true;
+                } else return false;
+            } else {
+                SaveToFile();
+                return true;
+            }
         }
 
         private void SaveToolStripMenuItem_Click(object sender, EventArgs e) {
-            if (string.IsNullOrEmpty(SaveFile)) SaveAsToolStripMenuItem_Click(sender, e);
-            else SaveToFile();
+            Save(false);
         }
 
         private void SaveAsToolStripMenuItem_Click(object sender, EventArgs e) {
-            var saveDialogue = new SaveFileDialog {
-                Filter = "Json (*.json)|*.json",
-                RestoreDirectory = true,
-                Title = "Save As"
-            };
-            if (saveDialogue.ShowDialog() == DialogResult.OK) {
-                SaveFile = saveDialogue.FileName;
-                SaveToFile();
-            }
+            Save(true);
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -214,8 +230,17 @@ namespace DialogueCreator {
             }
         }
 
-        private void NewToolStripMenuItem_Click(object sender, EventArgs e) {
+        private void Clear() {
+            SaveFile = null;
+            Character.Characters.Clear();
+            TreeView.Nodes.Clear();
+            AddTreeNode("Start");
+            SetTitle(false);
+        }
 
+        private void NewToolStripMenuItem_Click(object sender, EventArgs e) {
+            Save(false);
+            Clear();
         }
 
         private void TraverseTreePreorder(TreeNode root, Action<TreeNode> action) {
@@ -294,15 +319,21 @@ namespace DialogueCreator {
         }
 
         private void TreeView_MouseUp(object sender, MouseEventArgs e) {
+            TreeNode mouseNode = TreeView.GetNodeAt(e.Location);
             if (e.Button == MouseButtons.Right) {
-                TreeContextMenuStrip.Show(TreeView, e.Location);
+                if (mouseNode is null) {
+                    TreeContextMenuStrip.Show(TreeView, e.Location);
+                } else {
+                    TreeView.SelectedNode = mouseNode;
+                    TreeItemContextMenuStrip.Show(TreeView, e.Location);
+                }
             }
         }
 
         private void DialogueTable_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
             if (CurrentNode is null || e.RowIndex == 0 || !DialogueTable.Enabled) return;
             CurrentNode.Dialogues.Add(new DialogueNode.Dialogue());
-            Console.WriteLine("Added dialogue " + (e.RowIndex - 1));
+            SetTitle(true);
         }
 
         private void ChoiceTable_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
@@ -312,7 +343,7 @@ namespace DialogueCreator {
             DialogueNode addedNode = AddTreeNode("-", CurrentTreeNode);
             newChoice.NextNode = addedNode;
             CurrentTreeNode.Expand();
-            Console.WriteLine("Added choice " + (e.RowIndex - 1));
+            SetTitle(true);
         }
 
         private string GetColButtonPress(DataGridView table, DataGridViewCellEventArgs e) {
@@ -329,27 +360,54 @@ namespace DialogueCreator {
                 // delete the dialogue row
                 DialogueTable.Rows.RemoveAt(e.RowIndex);
                 CurrentNode.Dialogues.RemoveAt(e.RowIndex);
-                Console.WriteLine("Removed dialogue " + e.RowIndex);
+                SetTitle(true);
             }
+        }
+
+        private bool DeleteChoice(TreeNode deleteNode, int rowIndex) {
+            // delete choice row and tree
+            int destroyCount = deleteNode.GetNodeCount(true) + 1; // children + node itself
+            DialogResult deleteChoice;
+            if (destroyCount <= 1) { // only one node, don't ask
+                deleteChoice = DialogResult.OK;
+            } else {
+                deleteChoice = MessageBox.Show($"Delete '{deleteNode.Text}'? This will destroy the entire decision tree! ({destroyCount} node{(destroyCount == 1 ? "" : "s")}!) Proceed?",
+                    "Delete choice?", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+            }
+            if (deleteChoice == DialogResult.OK) {
+                var treeParent = deleteNode.Parent;
+                var dialogueParent = (DialogueNode) treeParent.Tag;
+                dialogueParent.Choices.RemoveAt(rowIndex); // del data
+                treeParent.Nodes.RemoveAt(rowIndex); // (scary), del tree
+                SetTitle(true);
+                return true; 
+            } else return false;
         }
 
         private void ChoiceTable_CellContentClick(object sender, DataGridViewCellEventArgs e) {
             string colName = GetColButtonPress(ChoiceTable, e);
             if (CurrentNode is null) return;
             if (colName == DeleteChoiceColumn.Name) {
-                // delete choice row and tree
-                DialogResult deleteChoice = MessageBox.Show("This will destroy the entire decision tree! Proceed?",
-                    "Delete choice?", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
-                if (deleteChoice == DialogResult.OK) {
-                    CurrentNode.Choices.RemoveAt(e.RowIndex); // -data
-                    CurrentTreeNode.Nodes.RemoveAt(e.RowIndex); // scary, -tree
-                    ChoiceTable.Rows.RemoveAt(e.RowIndex); // -row
-                    Console.WriteLine("Removed choice " + e.RowIndex);
-                }
+                DeleteChoice(CurrentTreeNode.Nodes[e.RowIndex], e.RowIndex);
+                ChoiceTable.Rows.RemoveAt(e.RowIndex); // del visual row
             } else if (colName == ChooseColumn.Name) {
                 // navigate into the choice
                 TreeView.SelectedNode = CurrentTreeNode.Nodes[e.RowIndex]; // invokes Load
             }
+        }
+
+        private void DeleteChoiceToolStripMenuItem_Click(object sender, EventArgs e) {
+            if (CurrentTreeNode.Parent != null) { // not root node
+                DeleteChoice(CurrentTreeNode, CurrentTreeNode.Parent.Nodes.IndexOf(CurrentTreeNode));
+            }
+        }
+
+        private void ExpandAllToolStripMenuItem_Click(object sender, EventArgs e) {
+            CurrentTreeNode.ExpandAll();
+        }
+
+        private void CollapseAllToolStripMenuItem_Click(object sender, EventArgs e) {
+            CurrentTreeNode.Collapse(false); // collapse children too
         }
     }
 }

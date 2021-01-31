@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Newtonsoft.Json;
 
 namespace DialogueCreator {
     public class DialogueNode {
 
-        public List<Dialogue> Dialogues;
-        public List<Choice> Choices;
+        public readonly List<Dialogue> Dialogues;
+        public readonly List<Choice> Choices;
 
         public DialogueNode() {
             Dialogues = new List<Dialogue>();
