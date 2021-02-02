@@ -72,6 +72,7 @@
     <Compile Include="RenameCharacterForm.Designer.cs">
       <DependentUpon>RenameCharacterForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="TreeTag.cs" />
     <EmbeddedResource Include="CharacterEditor.resx">
       <DependentUpon>CharacterEditor.cs</DependentUpon>
     </EmbeddedResource>

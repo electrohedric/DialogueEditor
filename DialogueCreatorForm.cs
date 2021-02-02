@@ -23,6 +23,8 @@ namespace DialogueCreator {
         private DialogueNode CurrentNode { get; set; }
         private TreeNode CurrentTreeNode { get; set; }
         private string SaveFile { get; set; }
+        private bool JumpSelectionMode { get; set; }
+        private DialogueNode.Choice JumpFrom { get; set; }
 
         public DialogueCreatorForm() {
             InitializeComponent();
@@ -61,8 +63,8 @@ namespace DialogueCreator {
             } else {
                 added = root.Nodes.Add(name);
             }
-            var newNode = new DialogueNode();
-            added.Tag = newNode;
+            var newNode = new DialogueNode(added);
+            added.Tag = new TreeTag(newNode, false);
             return newNode;
         }
 
@@ -72,7 +74,7 @@ namespace DialogueCreator {
             ChoiceTable.Enabled = false;
             DialogueTable.Rows.Clear();
             ChoiceTable.Rows.Clear();
-            var node = (DialogueNode) treeNode.Tag;
+            var node = GetNode(treeNode);
             foreach (DialogueNode.Dialogue dialogue in node.Dialogues) {
                 var row = DialogueTable.Rows[DialogueTable.Rows.Add()];
                 row.Cells[CharacterColumn.Index].Value = dialogue.Speaker?.Name;
@@ -85,8 +87,10 @@ namespace DialogueCreator {
             //DialogueTable.CurrentCell = DialogueTable.Rows[DialogueTable.Rows.Count - 1].Cells[DialogueColumn.Index];
             DialogueTable.CurrentCell = null;
             ChoiceTable.CurrentCell = null;
-            DialogueTable.Enabled = true;
-            ChoiceTable.Enabled = true;
+            if (!JumpSelectionMode) { // jumping keeps tables disabled until a tree node is selected for jumping
+                DialogueTable.Enabled = true;
+                ChoiceTable.Enabled = true;
+            }
             CurrentTreeNode = treeNode;
             CurrentNode = node;
         }
@@ -163,17 +167,18 @@ namespace DialogueCreator {
         }
 
         private void SaveToFile() {
-            var container = new JsonDialogueContainer((DialogueNode) TreeView.Nodes[0].Tag, Character.Characters.Values);
+            var container = new JsonDialogueContainer(GetNode(TreeView.Nodes[0]), Character.Characters.Values);
             string jsonOut = JsonConvert.SerializeObject(container);
             System.IO.File.WriteAllText(SaveFile, jsonOut);
             SetTitle(false);
         }
 
-        private void CopyDialogueToTree(TreeNode treeRoot, DialogueNode root) {
-            treeRoot.Tag = root;
+        private void CopyDialogueToTree(TreeNode treeRoot, DialogueNode root, bool isRef = false) {
+            treeRoot.Tag = new TreeTag(root, isRef);
+            root.TreeNode = treeRoot;
             foreach (var choice in root.Choices) {
                 TreeNode added = treeRoot.Nodes.Add(choice.Text);
-                CopyDialogueToTree(added, choice.NextNode);
+                CopyDialogueToTree(added, choice.NextNode, choice.IsRef);
             }
         }
 
@@ -291,8 +296,8 @@ namespace DialogueCreator {
             // deleting old characters
             if (removedChars.Count > 0) {
                 // go down the tree and set all characters which were removed to null
-                TraverseTreePreorder(TreeView.TopNode, node => {
-                    foreach (var dialogue in ((DialogueNode) node.Tag).Dialogues) {
+                TraverseTreePreorder(TreeView.TopNode, treeNode => {
+                    foreach (var dialogue in (GetNode(treeNode).Dialogues)) {
                         if (removedChars.Contains(dialogue.Speaker.Name)) {
                             dialogue.Speaker = null;
                         }
@@ -315,7 +320,33 @@ namespace DialogueCreator {
         }
 
         private void TreeView_AfterSelect(object sender, TreeViewEventArgs e) {
+            var lastNode = CurrentNode;
             LoadDialogueNode(e.Node);
+            if (JumpSelectionMode && lastNode == CurrentNode) { // clicked on same node again
+                // this may accidentally destroy unreferenced nodes after assigning NextNode, so check first
+                int destroyCount = JumpFrom.TreeNode.GetNodeCount(true);
+                string alert = "";
+                if (destroyCount > 0) {
+                    alert = $"This will destroy the {destroyCount} existing node{AddS(destroyCount)} under the choice.";
+                }
+                var result = MessageBox.Show($"Choosing '{JumpFrom.Text}' will jump as if choosing '{CurrentTreeNode.Text}'{alert} Continue?", "Jump?", 
+                    MessageBoxButtons.YesNoCancel, alert == "" ? MessageBoxIcon.Question : MessageBoxIcon.Warning);
+                if (result == DialogResult.Yes || result == DialogResult.Cancel) {
+                    if (result == DialogResult.Yes) {
+                        JumpFrom.NextNode = CurrentNode;
+                        JumpFrom.IsRef = true;
+                        JumpFrom.TreeNode.Tag = new TreeTag(CurrentNode, true);
+                        JumpFrom.TreeNode.ForeColor = Color.Blue; // TODO: let them undo this
+                        // TODO: color blue if ref on load
+                        // TODO: undo orange background if node has been selected
+                    }
+                    JumpSelectionMode = false;
+                    // disable all tables until they select a node from the tree
+                    DialogueTable.Enabled = true;
+                    ChoiceTable.Enabled = true;
+                    TreeView.Cursor = Cursors.Default;
+                }
+            }
         }
 
         private void TreeView_MouseUp(object sender, MouseEventArgs e) {
@@ -338,9 +369,9 @@ namespace DialogueCreator {
 
         private void ChoiceTable_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
             if (CurrentNode is null || e.RowIndex == 0 || !ChoiceTable.Enabled) return;
-            DialogueNode.Choice newChoice = new DialogueNode.Choice();
-            CurrentNode.Choices.Add(newChoice);
             DialogueNode addedNode = AddTreeNode("-", CurrentTreeNode);
+            DialogueNode.Choice newChoice = new DialogueNode.Choice(addedNode.TreeNode, false);
+            CurrentNode.Choices.Add(newChoice);
             newChoice.NextNode = addedNode;
             CurrentTreeNode.Expand();
             SetTitle(true);
@@ -363,6 +394,14 @@ namespace DialogueCreator {
                 SetTitle(true);
             }
         }
+        
+        private static string AddS(int count) {
+            return count == 1 ? "" : "s";
+        }
+
+        private DialogueNode GetNode(TreeNode treeNode) {
+            return ((TreeTag) treeNode.Tag).Node;
+        }
 
         private bool DeleteChoice(TreeNode deleteNode, int rowIndex) {
             // delete choice row and tree
@@ -371,12 +410,20 @@ namespace DialogueCreator {
             if (destroyCount <= 1) { // only one node, don't ask
                 deleteChoice = DialogResult.OK;
             } else {
-                deleteChoice = MessageBox.Show($"Delete '{deleteNode.Text}'? This will destroy the entire decision tree! ({destroyCount} node{(destroyCount == 1 ? "" : "s")}!) Proceed?",
+                deleteChoice = MessageBox.Show($"Delete '{deleteNode.Text}'? This will destroy the entire decision tree! " +
+                    $"({destroyCount} node{AddS(destroyCount)}!) Proceed?",
                     "Delete choice?", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
             }
             if (deleteChoice == DialogResult.OK) {
+                var deleteDNode = GetNode(deleteNode);
+                int references = FindReferences(deleteDNode).Count;
+                if (references > 0) {
+                    MessageBox.Show($"Cannot delete. Found {references} reference{AddS(references)} to this node. Delete or unlink them first.", 
+                        "References found", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    return false;
+                }
                 var treeParent = deleteNode.Parent;
-                var dialogueParent = (DialogueNode) treeParent.Tag;
+                var dialogueParent = GetNode(treeParent);
                 dialogueParent.Choices.RemoveAt(rowIndex); // del data
                 treeParent.Nodes.RemoveAt(rowIndex); // (scary), del tree
                 SetTitle(true);
@@ -397,7 +444,7 @@ namespace DialogueCreator {
         }
 
         private void DeleteChoiceToolStripMenuItem_Click(object sender, EventArgs e) {
-            if (CurrentTreeNode.Parent != null) { // not root node
+            if (CurrentTreeNode.Parent != null) { // not root node, not jumping
                 DeleteChoice(CurrentTreeNode, CurrentTreeNode.Parent.Nodes.IndexOf(CurrentTreeNode));
             }
         }
@@ -408,6 +455,39 @@ namespace DialogueCreator {
 
         private void CollapseAllToolStripMenuItem_Click(object sender, EventArgs e) {
             CurrentTreeNode.Collapse(false); // collapse children too
+        }
+
+        private void ChoiceTable_CellMouseUp(object sender, DataGridViewCellMouseEventArgs e) {
+            var row = ChoiceTable.Rows[e.RowIndex];
+            if (row.IsNewRow || !ChoiceTable.Enabled) return;
+            if (e.Button == MouseButtons.Right) {
+                JumpFrom = CurrentNode.Choices[e.RowIndex];
+                ChoiceContextMenuStrip.Show(e.Location);
+            }
+        }
+
+        private void JumpToolStripMenuItem_Click(object sender, EventArgs e) {
+            JumpSelectionMode = true;
+            // disable all tables until they select a node from the tree
+            DialogueTable.Enabled = false;
+            ChoiceTable.Enabled = false;
+            TreeView.Cursor = Cursors.Hand;
+        }
+
+        private List<TreeNode> FindReferences(DialogueNode refNode, bool onlyExternal = true) {
+            var foundNodes = new List<TreeNode>();
+            TraverseTreePreorder(TreeView.TopNode, treeNode => {
+                var node = GetNode(treeNode);
+                if (node == refNode && (!onlyExternal || treeNode != refNode.TreeNode)) foundNodes.Add(treeNode);
+            });
+            return foundNodes;
+        }
+
+        private void FindReferencesToolStripMenuItem_Click(object sender, EventArgs e) {
+            foreach (var treeNode in FindReferences(CurrentNode)) {
+                treeNode.BackColor = Color.Orange;
+            }
+
         }
     }
 }

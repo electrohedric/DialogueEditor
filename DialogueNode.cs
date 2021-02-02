@@ -7,14 +7,20 @@ using System.Windows.Forms;
 using Newtonsoft.Json;
 
 namespace DialogueCreator {
+
+    [JsonObject(IsReference = true)]
     public class DialogueNode {
 
         public readonly List<Dialogue> Dialogues;
         public readonly List<Choice> Choices;
 
-        public DialogueNode() {
+        [JsonIgnore]
+        public TreeNode TreeNode { get; set; }
+
+        public DialogueNode(TreeNode reference) {
             Dialogues = new List<Dialogue>();
             Choices = new List<Choice>();
+            TreeNode = reference;
         }
 
         public class Dialogue {
@@ -30,6 +36,15 @@ namespace DialogueCreator {
         public class Choice {
             public string Text { get; set; }
             public DialogueNode NextNode { get; set; }
+            public bool IsRef { get; set; }
+
+            [JsonIgnore]
+            public TreeNode TreeNode;
+
+            public Choice(TreeNode reference, bool isRef) {
+                TreeNode = reference;
+                IsRef = isRef;
+            }
 
             public override string ToString() {
                 return Text;
