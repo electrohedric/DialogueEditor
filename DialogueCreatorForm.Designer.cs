@@ -24,14 +24,14 @@
         /// </summary>
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle20 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle17 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle18 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle19 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle24 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle21 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle22 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle23 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle16 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle13 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle14 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle15 = new System.Windows.Forms.DataGridViewCellStyle();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.TreeView = new System.Windows.Forms.TreeView();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
@@ -57,11 +57,12 @@
             this.TreeItemContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.expandAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contractAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.findReferencesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteChoiceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ChoiceContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.jumpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.removeJumpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.findReferencesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.WinTooltip = new System.Windows.Forms.ToolTip(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -100,11 +101,15 @@
             // 
             this.TreeView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.TreeView.Font = new System.Drawing.Font("Times New Roman", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TreeView.HideSelection = false;
             this.TreeView.Location = new System.Drawing.Point(0, 24);
             this.TreeView.Name = "TreeView";
+            this.TreeView.PathSeparator = "/";
             this.TreeView.Size = new System.Drawing.Size(390, 743);
             this.TreeView.TabIndex = 0;
+            this.TreeView.NodeMouseHover += new System.Windows.Forms.TreeNodeMouseHoverEventHandler(this.TreeView_NodeMouseHover);
             this.TreeView.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.TreeView_AfterSelect);
+            this.TreeView.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.TreeView_NodeMouseDoubleClick);
             this.TreeView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.TreeView_MouseUp);
             // 
             // splitContainer2
@@ -137,14 +142,14 @@
             this.CharacterSelect,
             this.ConvDialogue,
             this.DeleteConvoRowButton});
-            dataGridViewCellStyle20.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle20.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle20.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle20.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle20.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle20.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle20.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.DialogueTable.DefaultCellStyle = dataGridViewCellStyle20;
+            dataGridViewCellStyle12.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle12.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle12.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle12.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle12.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle12.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle12.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.DialogueTable.DefaultCellStyle = dataGridViewCellStyle12;
             this.DialogueTable.Dock = System.Windows.Forms.DockStyle.Fill;
             this.DialogueTable.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
             this.DialogueTable.Location = new System.Drawing.Point(0, 24);
@@ -166,9 +171,9 @@
             // CharacterSelect
             // 
             this.CharacterSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            dataGridViewCellStyle17.Font = new System.Drawing.Font("Times New Roman", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle17.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.CharacterSelect.DefaultCellStyle = dataGridViewCellStyle17;
+            dataGridViewCellStyle9.Font = new System.Drawing.Font("Times New Roman", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle9.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.CharacterSelect.DefaultCellStyle = dataGridViewCellStyle9;
             this.CharacterSelect.HeaderText = "Character";
             this.CharacterSelect.MinimumWidth = 100;
             this.CharacterSelect.Name = "CharacterSelect";
@@ -177,10 +182,10 @@
             // ConvDialogue
             // 
             this.ConvDialogue.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            dataGridViewCellStyle18.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopLeft;
-            dataGridViewCellStyle18.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle18.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.ConvDialogue.DefaultCellStyle = dataGridViewCellStyle18;
+            dataGridViewCellStyle10.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopLeft;
+            dataGridViewCellStyle10.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle10.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.ConvDialogue.DefaultCellStyle = dataGridViewCellStyle10;
             this.ConvDialogue.HeaderText = "Dialogue";
             this.ConvDialogue.MinimumWidth = 80;
             this.ConvDialogue.Name = "ConvDialogue";
@@ -190,9 +195,9 @@
             // DeleteConvoRowButton
             // 
             this.DeleteConvoRowButton.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            dataGridViewCellStyle19.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle19.Font = new System.Drawing.Font("Arial Rounded MT Bold", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.DeleteConvoRowButton.DefaultCellStyle = dataGridViewCellStyle19;
+            dataGridViewCellStyle11.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle11.Font = new System.Drawing.Font("Arial Rounded MT Bold", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.DeleteConvoRowButton.DefaultCellStyle = dataGridViewCellStyle11;
             this.DeleteConvoRowButton.HeaderText = "X";
             this.DeleteConvoRowButton.MinimumWidth = 25;
             this.DeleteConvoRowButton.Name = "DeleteConvoRowButton";
@@ -212,14 +217,14 @@
             this.ChooseButton,
             this.ChoiceDialogue,
             this.DeleteChoiceRowButton});
-            dataGridViewCellStyle24.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle24.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle24.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle24.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle24.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle24.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle24.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.ChoiceTable.DefaultCellStyle = dataGridViewCellStyle24;
+            dataGridViewCellStyle16.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle16.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle16.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle16.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle16.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle16.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle16.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.ChoiceTable.DefaultCellStyle = dataGridViewCellStyle16;
             this.ChoiceTable.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ChoiceTable.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
             this.ChoiceTable.Location = new System.Drawing.Point(0, 0);
@@ -242,9 +247,9 @@
             // ChooseButton
             // 
             this.ChooseButton.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            dataGridViewCellStyle21.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle21.Font = new System.Drawing.Font("Times New Roman", 11.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ChooseButton.DefaultCellStyle = dataGridViewCellStyle21;
+            dataGridViewCellStyle13.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle13.Font = new System.Drawing.Font("Times New Roman", 11.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ChooseButton.DefaultCellStyle = dataGridViewCellStyle13;
             this.ChooseButton.HeaderText = "Go";
             this.ChooseButton.MinimumWidth = 30;
             this.ChooseButton.Name = "ChooseButton";
@@ -256,10 +261,10 @@
             // ChoiceDialogue
             // 
             this.ChoiceDialogue.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            dataGridViewCellStyle22.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopLeft;
-            dataGridViewCellStyle22.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle22.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.ChoiceDialogue.DefaultCellStyle = dataGridViewCellStyle22;
+            dataGridViewCellStyle14.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopLeft;
+            dataGridViewCellStyle14.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle14.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.ChoiceDialogue.DefaultCellStyle = dataGridViewCellStyle14;
             this.ChoiceDialogue.HeaderText = "Dialogue";
             this.ChoiceDialogue.Name = "ChoiceDialogue";
             this.ChoiceDialogue.Resizable = System.Windows.Forms.DataGridViewTriState.False;
@@ -268,9 +273,9 @@
             // DeleteChoiceRowButton
             // 
             this.DeleteChoiceRowButton.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            dataGridViewCellStyle23.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle23.Font = new System.Drawing.Font("Arial Rounded MT Bold", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.DeleteChoiceRowButton.DefaultCellStyle = dataGridViewCellStyle23;
+            dataGridViewCellStyle15.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle15.Font = new System.Drawing.Font("Arial Rounded MT Bold", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.DeleteChoiceRowButton.DefaultCellStyle = dataGridViewCellStyle15;
             this.DeleteChoiceRowButton.HeaderText = "X";
             this.DeleteChoiceRowButton.MinimumWidth = 25;
             this.DeleteChoiceRowButton.Name = "DeleteChoiceRowButton";
@@ -379,26 +384,33 @@
             this.findReferencesToolStripMenuItem,
             this.deleteChoiceToolStripMenuItem});
             this.TreeItemContextMenuStrip.Name = "TreeItemContextMenuStrip";
-            this.TreeItemContextMenuStrip.Size = new System.Drawing.Size(181, 114);
+            this.TreeItemContextMenuStrip.Size = new System.Drawing.Size(158, 92);
             // 
             // expandAllToolStripMenuItem
             // 
             this.expandAllToolStripMenuItem.Name = "expandAllToolStripMenuItem";
-            this.expandAllToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.expandAllToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.expandAllToolStripMenuItem.Text = "Expand All";
             this.expandAllToolStripMenuItem.Click += new System.EventHandler(this.ExpandAllToolStripMenuItem_Click);
             // 
             // contractAllToolStripMenuItem
             // 
             this.contractAllToolStripMenuItem.Name = "contractAllToolStripMenuItem";
-            this.contractAllToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.contractAllToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.contractAllToolStripMenuItem.Text = "Collapse All";
             this.contractAllToolStripMenuItem.Click += new System.EventHandler(this.CollapseAllToolStripMenuItem_Click);
+            // 
+            // findReferencesToolStripMenuItem
+            // 
+            this.findReferencesToolStripMenuItem.Name = "findReferencesToolStripMenuItem";
+            this.findReferencesToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.findReferencesToolStripMenuItem.Text = "Find References";
+            this.findReferencesToolStripMenuItem.Click += new System.EventHandler(this.FindReferencesToolStripMenuItem_Click);
             // 
             // deleteChoiceToolStripMenuItem
             // 
             this.deleteChoiceToolStripMenuItem.Name = "deleteChoiceToolStripMenuItem";
-            this.deleteChoiceToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.deleteChoiceToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.deleteChoiceToolStripMenuItem.Text = "Delete Choice";
             this.deleteChoiceToolStripMenuItem.Click += new System.EventHandler(this.DeleteChoiceToolStripMenuItem_Click);
             // 
@@ -422,13 +434,7 @@
             this.removeJumpToolStripMenuItem.Name = "removeJumpToolStripMenuItem";
             this.removeJumpToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
             this.removeJumpToolStripMenuItem.Text = "Remove Jump";
-            // 
-            // findReferencesToolStripMenuItem
-            // 
-            this.findReferencesToolStripMenuItem.Name = "findReferencesToolStripMenuItem";
-            this.findReferencesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.findReferencesToolStripMenuItem.Text = "Find References";
-            this.findReferencesToolStripMenuItem.Click += new System.EventHandler(this.FindReferencesToolStripMenuItem_Click);
+            this.removeJumpToolStripMenuItem.Click += new System.EventHandler(this.RemoveJumpToolStripMenuItem_Click);
             // 
             // DialogueCreatorForm
             // 
@@ -494,6 +500,7 @@
         private System.Windows.Forms.ToolStripMenuItem jumpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem removeJumpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem findReferencesToolStripMenuItem;
+        private System.Windows.Forms.ToolTip WinTooltip;
     }
 }
 

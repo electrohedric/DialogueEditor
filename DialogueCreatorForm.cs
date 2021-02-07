@@ -24,7 +24,7 @@ namespace DialogueCreator {
         private TreeNode CurrentTreeNode { get; set; }
         private string SaveFile { get; set; }
         private bool JumpSelectionMode { get; set; }
-        private DialogueNode.Choice JumpFrom { get; set; }
+        private DialogueNode.Choice JumpFrom { get; set; } // for setting reference to choice that was right clicked
 
         public DialogueCreatorForm() {
             InitializeComponent();
@@ -175,9 +175,16 @@ namespace DialogueCreator {
 
         private void CopyDialogueToTree(TreeNode treeRoot, DialogueNode root, bool isRef = false) {
             treeRoot.Tag = new TreeTag(root, isRef);
+            if (isRef) {
+                treeRoot.ForeColor = Color.Blue;
+                // do not set the tree node. it has already been set since this is a reference to another node
+                // do not copy the choices, the gui will simulate
+                return;
+            }
             root.TreeNode = treeRoot;
             foreach (var choice in root.Choices) {
                 TreeNode added = treeRoot.Nodes.Add(choice.Text);
+                choice.TreeNode = added;
                 CopyDialogueToTree(added, choice.NextNode, choice.IsRef);
             }
         }
@@ -195,6 +202,8 @@ namespace DialogueCreator {
             }
             CopyDialogueToTree(TreeView.Nodes.Add("Start"), container.Root);
             SetTitle(false);
+            TreeView.TopNode.ExpandAll();
+            TreeView.SelectedNode = TreeView.TopNode;
         }
 
         private bool Save(bool saveAs) {
@@ -241,6 +250,7 @@ namespace DialogueCreator {
             TreeView.Nodes.Clear();
             AddTreeNode("Start");
             SetTitle(false);
+            TreeView.SelectedNode = TreeView.TopNode;
         }
 
         private void NewToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -320,33 +330,12 @@ namespace DialogueCreator {
         }
 
         private void TreeView_AfterSelect(object sender, TreeViewEventArgs e) {
-            var lastNode = CurrentNode;
-            LoadDialogueNode(e.Node);
-            if (JumpSelectionMode && lastNode == CurrentNode) { // clicked on same node again
-                // this may accidentally destroy unreferenced nodes after assigning NextNode, so check first
-                int destroyCount = JumpFrom.TreeNode.GetNodeCount(true);
-                string alert = "";
-                if (destroyCount > 0) {
-                    alert = $"This will destroy the {destroyCount} existing node{AddS(destroyCount)} under the choice.";
-                }
-                var result = MessageBox.Show($"Choosing '{JumpFrom.Text}' will jump as if choosing '{CurrentTreeNode.Text}'{alert} Continue?", "Jump?", 
-                    MessageBoxButtons.YesNoCancel, alert == "" ? MessageBoxIcon.Question : MessageBoxIcon.Warning);
-                if (result == DialogResult.Yes || result == DialogResult.Cancel) {
-                    if (result == DialogResult.Yes) {
-                        JumpFrom.NextNode = CurrentNode;
-                        JumpFrom.IsRef = true;
-                        JumpFrom.TreeNode.Tag = new TreeTag(CurrentNode, true);
-                        JumpFrom.TreeNode.ForeColor = Color.Blue; // TODO: let them undo this
-                        // TODO: color blue if ref on load
-                        // TODO: undo orange background if node has been selected
-                    }
-                    JumpSelectionMode = false;
-                    // disable all tables until they select a node from the tree
-                    DialogueTable.Enabled = true;
-                    ChoiceTable.Enabled = true;
-                    TreeView.Cursor = Cursors.Default;
-                }
+            var tag = (TreeTag) e.Node.Tag;
+            if (tag.IsReference) {
+                TreeView.SelectedNode = tag.Node.TreeNode;
             }
+            LoadDialogueNode(e.Node);
+            e.Node.BackColor = SystemColors.Window;
         }
 
         private void TreeView_MouseUp(object sender, MouseEventArgs e) {
@@ -461,13 +450,13 @@ namespace DialogueCreator {
             var row = ChoiceTable.Rows[e.RowIndex];
             if (row.IsNewRow || !ChoiceTable.Enabled) return;
             if (e.Button == MouseButtons.Right) {
-                JumpFrom = CurrentNode.Choices[e.RowIndex];
-                ChoiceContextMenuStrip.Show(e.Location);
+                JumpFrom = CurrentNode.Choices[e.RowIndex]; // set reference so outside can use this choice clicked
+                ChoiceContextMenuStrip.Show(ChoiceTable, e.Location);
             }
         }
 
         private void JumpToolStripMenuItem_Click(object sender, EventArgs e) {
-            JumpSelectionMode = true;
+            JumpSelectionMode = true; // TODO: on escape press, cancel
             // disable all tables until they select a node from the tree
             DialogueTable.Enabled = false;
             ChoiceTable.Enabled = false;
@@ -484,10 +473,60 @@ namespace DialogueCreator {
         }
 
         private void FindReferencesToolStripMenuItem_Click(object sender, EventArgs e) {
+            // reset all colors so we can highlight
+            TraverseTreePreorder(TreeView.TopNode, node => node.BackColor = SystemColors.Window);
+            // highlight all references with a bright color
             foreach (var treeNode in FindReferences(CurrentNode)) {
                 treeNode.BackColor = Color.Orange;
             }
+        }
 
+        private void RemoveJumpToolStripMenuItem_Click(object sender, EventArgs e) {
+            JumpSelectionMode = false; // 1 way to cancel jump selection
+            if (JumpFrom.IsRef) {
+                var newNode = new DialogueNode(CurrentTreeNode);
+                JumpFrom.NextNode = newNode;
+                JumpFrom.IsRef = false;
+                JumpFrom.TreeNode.Tag = new TreeTag(newNode, false);
+                JumpFrom.TreeNode.ForeColor = SystemColors.WindowText;
+            }
+        }
+
+        private void TreeView_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e) {
+            if (JumpSelectionMode) {
+                // this may accidentally destroy unreferenced nodes after assigning NextNode, so check first
+                int destroyCount = JumpFrom.TreeNode.GetNodeCount(true);
+                string alert = "";
+                if (destroyCount > 0) {
+                    alert = $" This will destroy the {destroyCount} existing node{AddS(destroyCount)} under the choice.";
+                }
+                var result = MessageBox.Show($"Choosing '{JumpFrom.Text}' will jump as if choosing '{CurrentTreeNode.Text}'.{alert} Continue?", "Jump?",
+                    MessageBoxButtons.YesNoCancel, alert == "" ? MessageBoxIcon.Question : MessageBoxIcon.Warning);
+                if (result == DialogResult.Yes || result == DialogResult.Cancel) {
+                    if (result == DialogResult.Yes) {
+                        JumpFrom.NextNode = CurrentNode;
+                        JumpFrom.IsRef = true;
+                        JumpFrom.TreeNode.Tag = new TreeTag(CurrentNode, true); // reroute the tree node to point to the reference
+                        JumpFrom.TreeNode.ForeColor = Color.Blue; // look similar to hyperlink
+                        JumpFrom.TreeNode.Nodes.Clear(); // remove children. no longer can be accessed
+                    }
+                    JumpSelectionMode = false;
+                    // disable all tables until they select a node from the tree
+                    DialogueTable.Enabled = true;
+                    ChoiceTable.Enabled = true;
+                    TreeView.Cursor = Cursors.Default;
+                }
+            }
+        }
+
+        private void TreeView_NodeMouseHover(object sender, TreeNodeMouseHoverEventArgs e) {
+            var tag = (TreeTag) e.Node.Tag;
+            if (tag.IsReference) {
+                WinTooltip.SetToolTip(TreeView, "");
+                Point mousePos = TreeView.PointToClient(MousePosition);
+                mousePos.Offset(15, 0); // display slightly to the right of the mouse
+                WinTooltip.Show($"Jumps to \"{tag.Node.TreeNode.Text}\"", TreeView, mousePos);
+            }
         }
     }
 }
